@@ -1,0 +1,166 @@
+-- Table des pays
+CREATE TABLE pays (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    nom VARCHAR(100) NOT NULL
+);
+
+-- Table des régions
+CREATE TABLE regions (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    nom VARCHAR(100) NOT NULL,
+    pays_id BIGINT,
+    FOREIGN KEY (pays_id) REFERENCES pays(id)
+);
+
+-- Table des départements
+CREATE TABLE departements (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    nom VARCHAR(100) NOT NULL,
+    region_id BIGINT,
+    FOREIGN KEY (region_id) REFERENCES regions(id)
+);
+
+-- Table des villes
+CREATE TABLE villes (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    nom VARCHAR(100) NOT NULL,
+    departement_id BIGINT,
+    FOREIGN KEY (departement_id) REFERENCES departements(id)
+);
+
+-- Table des utilisateurs
+CREATE TABLE users (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    phone VARCHAR(20),
+    gender ENUM('HOMME', 'FEMME') NOT NULL,
+    ville_id BIGINT,
+    FOREIGN KEY (ville_id) REFERENCES villes(id)
+);
+
+-- Table des rôles utilisateurs
+CREATE TABLE user_roles (
+    user_id BIGINT,
+    roles ENUM('ADMIN', 'CLIENT') NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Table des hôtels
+CREATE TABLE hotels (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    nom VARCHAR(100) NOT NULL,
+    adresse TEXT,
+    etoiles INTEGER CHECK (etoiles BETWEEN 1 AND 5),
+    ville_id BIGINT,
+    FOREIGN KEY (ville_id) REFERENCES villes(id)
+);
+
+-- Table des points de départ
+CREATE TABLE points_depart (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    nom VARCHAR(100) NOT NULL,
+    adresse TEXT,
+    ville_id BIGINT,
+    FOREIGN KEY (ville_id) REFERENCES villes(id)
+);
+
+-- Table des types d'autocar
+CREATE TABLE types_autocar (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    nom VARCHAR(50) NOT NULL,
+    description TEXT
+);
+
+-- Table des autocars
+CREATE TABLE autocars (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    numero_immatriculation VARCHAR(20) UNIQUE NOT NULL,
+    nombre_places INTEGER NOT NULL,
+    type_autocar_id BIGINT,
+    FOREIGN KEY (type_autocar_id) REFERENCES types_autocar(id)
+);
+
+-- Table des emplacements dans les autocars
+CREATE TABLE emplacements (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    numero_siege INTEGER NOT NULL,
+    autocar_id BIGINT,
+    FOREIGN KEY (autocar_id) REFERENCES autocars(id),
+    UNIQUE KEY unique_siege_autocar (numero_siege, autocar_id)
+);
+
+-- Table des voyages
+CREATE TABLE voyages (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    nom VARCHAR(100) NOT NULL,
+    description TEXT,
+    duree INTEGER NOT NULL,
+    type_voyage ENUM('SEJOUR', 'CIRCUIT', 'EXCURSION') NOT NULL,
+    type_pension ENUM('PETIT_DEJEUNER', 'DEMI_PENSION', 'PENSION_COMPLETE') NOT NULL,
+    hotel_id BIGINT,
+    FOREIGN KEY (hotel_id) REFERENCES hotels(id)
+);
+
+-- Table de liaison voyage-points de départ
+CREATE TABLE voyage_point_depart (
+    voyage_id BIGINT,
+    point_depart_id BIGINT,
+    PRIMARY KEY (voyage_id, point_depart_id),
+    FOREIGN KEY (voyage_id) REFERENCES voyages(id),
+    FOREIGN KEY (point_depart_id) REFERENCES points_depart(id)
+);
+
+-- Table des programmations
+CREATE TABLE programmations (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    date_depart DATE NOT NULL,
+    date_retour DATE NOT NULL,
+    prix_base DECIMAL(10,2) NOT NULL,
+    voyage_id BIGINT,
+    FOREIGN KEY (voyage_id) REFERENCES voyages(id)
+);
+
+-- Table de liaison programmation-autocar
+CREATE TABLE programmation_autocar (
+    programmation_id BIGINT,
+    autocar_id BIGINT,
+    PRIMARY KEY (programmation_id, autocar_id),
+    FOREIGN KEY (programmation_id) REFERENCES programmations(id),
+    FOREIGN KEY (autocar_id) REFERENCES autocars(id)
+);
+
+-- Table des réservations
+CREATE TABLE reservations (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    date_reservation DATETIME NOT NULL,
+    prix_total DECIMAL(10,2) NOT NULL,
+    assurance_annulation BOOLEAN DEFAULT FALSE,
+    assurance_medicale BOOLEAN DEFAULT FALSE,
+    chambre_supplementaire BOOLEAN DEFAULT FALSE,
+    surclassement_suite BOOLEAN DEFAULT FALSE,
+    repas_speciaux BOOLEAN DEFAULT FALSE,
+    bagage_supplementaire BOOLEAN DEFAULT FALSE,
+    client_id BIGINT,
+    programmation_id BIGINT,
+    point_depart_id BIGINT,
+    FOREIGN KEY (client_id) REFERENCES users(id),
+    FOREIGN KEY (programmation_id) REFERENCES programmations(id),
+    FOREIGN KEY (point_depart_id) REFERENCES points_depart(id)
+);
+
+-- Table des passagers
+CREATE TABLE passagers (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    nom VARCHAR(50) NOT NULL,
+    prenom VARCHAR(50) NOT NULL,
+    telephone VARCHAR(20),
+    email VARCHAR(100),
+    reservation_id BIGINT,
+    emplacement_id BIGINT,
+    FOREIGN KEY (reservation_id) REFERENCES reservations(id),
+    FOREIGN KEY (emplacement_id) REFERENCES emplacements(id)
+);
