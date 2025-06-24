@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nos Voyages - Agence de Voyage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/client/dashboard">🌍 Mon Espace Voyage</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/client/dashboard">Tableau de bord</a>
+                <a class="nav-link" href="/client/profile">Mon Profil</a>
+                <a class="nav-link" href="/logout">Déconnexion</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">🗺️ Nos Voyages</h1>
+
+        <!-- Filtres de recherche -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">🔍 Rechercher un voyage</h5>
+                <form method="get" action="/client/voyages">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="category" class="form-label">Catégorie</label>
+                            <select class="form-select" name="category" id="category">
+                                <option value="">Toutes les catégories</option>
+                                <option th:each="type : ${typeVoyages}" 
+                                        th:value="${type}" 
+                                        th:text="${type}"
+                                        th:selected="${type.toString() == selectedCategory}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="destination" class="form-label">Destination</label>
+                            <input type="text" class="form-control" name="destination" id="destination" 
+                                   th:value="${selectedDestination}" placeholder="Nom de la ville...">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div>
+                                <button type="submit" class="btn btn-primary">Rechercher</button>
+                                <a href="/client/voyages" class="btn btn-secondary">Réinitialiser</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Liste des voyages -->
+        <div class="row">
+            <div th:if="${#lists.isEmpty(voyages)}" class="col-12">
+                <div class="alert alert-info">
+                    Aucun voyage trouvé avec ces critères.
+                </div>
+            </div>
+            
+            <div th:each="voyage : ${voyages}" class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${voyage.nom}">Nom du voyage</h5>
+                        <p class="card-text" th:text="${voyage.description}">Description</p>
+                        
+                        <div class="mb-2">
+                            <span class="badge bg-primary" th:text="${voyage.typeVoyage}">Type</span>
+                            <span class="badge bg-info" th:text="${voyage.duree + ' jours'}">Durée</span>
+                            <span class="badge bg-success" th:text="${voyage.typePension}">Pension</span>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <strong>🏨 Hôtel :</strong> <span th:text="${voyage.hotel.nom}">Hôtel</span>
+                            <br>
+                            <strong>📍 Destination :</strong> <span th:text="${voyage.hotel.ville.nom}">Ville</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>🚌 Points de départ :</strong>
+                            <ul class="list-unstyled">
+                                <li th:each="point : ${voyage.pointsDepart}" th:text="${point.nom + ' - ' + point.ville.nom}">Point</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a th:href="@{/client/voyages/{id}(id=${voyage.id})}" class="btn btn-primary">
+                            Voir les programmations
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

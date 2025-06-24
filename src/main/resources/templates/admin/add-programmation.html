@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter une Programmation - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/admin/dashboard">🌍 Admin - Agence de Voyage</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/admin/programmations">Retour aux programmations</a>
+                <a class="nav-link" href="/logout">Déconnexion</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">➕ Ajouter une Programmation</h1>
+
+        <div class="row">
+            <div class="col-md-8">
+                <form th:action="@{/admin/programmations/add}" th:object="${programmation}" method="post">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">📋 Informations de la programmation</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="voyage" class="form-label">Voyage *</label>
+                                <select class="form-select" th:field="*{voyage}" required>
+                                    <option value="">Sélectionner un voyage...</option>
+                                    <option th:each="voyage : ${voyages}" th:value="${voyage.id}" th:text="${voyage.nom}"></option>
+                                </select>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="dateDepart" class="form-label">Date de départ *</label>
+                                    <input type="date" class="form-control" th:field="*{dateDepart}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="dateRetour" class="form-label">Date de retour *</label>
+                                    <input type="date" class="form-control" th:field="*{dateRetour}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="prixBase" class="form-label">Prix de base (€)</label>
+                                <input type="number" step="0.01" class="form-control" th:field="*{prixBase}" 
+                                       placeholder="Le prix sera calculé automatiquement selon la période et le type">
+                                <small class="text-muted">Laissez vide pour un calcul automatique</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">🚌 Affectation des autocars</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div th:each="autocar : ${autocars}" class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="autocarIds" 
+                                               th:value="${autocar.id}" th:id="'autocar' + ${autocar.id}">
+                                        <label class="form-check-label" th:for="'autocar' + ${autocar.id}">
+                                            <strong th:text="${autocar.numeroImmatriculation}">Immatriculation</strong><br>
+                                            <small th:text="${autocar.typeAutocar.nom + ' - ' + autocar.nombrePlaces + ' places'}">Type</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Créer la programmation</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">💡 Aide</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Calcul automatique des prix :</h6>
+                        <ul class="small">
+                            <li><strong>Séjour :</strong> Prix de base</li>
+                            <li><strong>Circuit :</strong> +50% du prix de base</li>
+                            <li><strong>Excursion :</strong> -20% du prix de base</li>
+                        </ul>
+                        <h6>Ajustements saisonniers :</h6>
+                        <ul class="small">
+                            <li><strong>Été (juin-août) :</strong> +30%</li>
+                            <li><strong>Hiver (déc-fév) :</strong> +10%</li>
+                            <li><strong>Autres saisons :</strong> Prix normal</li>
+                        </ul>
+                        <p class="small text-muted">Le prix final est multiplié par la durée du voyage.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

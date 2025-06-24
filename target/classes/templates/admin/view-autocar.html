@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails Autocar - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .seat {
+            width: 40px;
+            height: 40px;
+            margin: 2px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .seat-available {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .seat-occupied {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .seat-row {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/admin/dashboard">🌍 Admin - Agence de Voyage</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/admin/autocars">Retour aux autocars</a>
+                <a class="nav-link" href="/logout">Déconnexion</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">🚌 Détails de l'Autocar</h1>
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Informations générales -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📋 Informations générales</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>🚌 Immatriculation :</strong> <span th:text="${autocar.numeroImmatriculation}">ABC-123</span><br>
+                                <strong>🏷️ Type :</strong> <span th:text="${autocar.typeAutocar.nom}">Type</span><br>
+                                <strong>📝 Description :</strong> <span th:text="${autocar.typeAutocar.description}">Description</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>💺 Nombre de places :</strong> <span th:text="${autocar.nombrePlaces}">50</span><br>
+                                <strong>✅ Places occupées :</strong> 
+                                <span th:text="${placesOccupees}">0</span><br>
+                                <strong>🆓 Places disponibles :</strong> 
+                                <span th:text="${autocar.nombrePlaces - placesOccupees}">50</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <strong>📊 Taux d'occupation :</strong>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" 
+                                     th:style="'width: ' + ${(placesOccupees * 100) / autocar.nombrePlaces} + '%'"
+                                     th:text="${(placesOccupees * 100) / autocar.nombrePlaces + '%'}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plan des sièges -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">💺 Plan des sièges</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <span class="seat seat-available">1</span> <small>Disponible</small>
+                            <span class="seat seat-occupied ms-3">2</span> <small>Occupé</small>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="mb-2"><strong>🚗 Avant du bus</strong></div>
+                            
+                            <!-- Génération du plan des sièges -->
+                            <div th:each="row : ${#numbers.sequence(1, (autocar.nombrePlaces + 3) / 4)}" class="seat-row">
+                                <!-- Sièges côté gauche -->
+                                <span th:if="${(row - 1) * 4 + 1 <= autocar.nombrePlaces}"
+                                      th:each="seatNum : ${#numbers.sequence((row - 1) * 4 + 1, T(java.lang.Math).min((row - 1) * 4 + 2, autocar.nombrePlaces))}"
+                                      th:class="${'seat ' + (emplacementsOccupes.contains(seatNum) ? 'seat-occupied' : 'seat-available')}"
+                                      th:text="${seatNum}">1</span>
+                                
+                                <!-- Allée -->
+                                <span style="margin: 0 20px;">│</span>
+                                
+                                <!-- Sièges côté droit -->
+                                <span th:if="${(row - 1) * 4 + 3 <= autocar.nombrePlaces}"
+                                      th:each="seatNum : ${#numbers.sequence((row - 1) * 4 + 3, T(java.lang.Math).min((row - 1) * 4 + 4, autocar.nombrePlaces))}"
+                                      th:class="${'seat ' + (emplacementsOccupes.contains(seatNum) ? 'seat-occupied' : 'seat-available')}"
+                                      th:text="${seatNum}">3</span>
+                            </div>
+                            
+                            <div class="mt-2"><strong>🚪 Arrière du bus</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Statistiques -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📊 Statistiques</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>📅 Programmations :</strong>
+                            <span class="badge bg-primary" th:text="${#lists.size(autocar.programmations)}">0</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>💺 Utilisation :</strong>
+                            <span class="badge bg-info" th:text="${placesOccupees + '/' + autocar.nombrePlaces}">0/50</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>📈 Taux d'occupation :</strong>
+                            <span class="badge bg-success" th:text="${(placesOccupees * 100) / autocar.nombrePlaces + '%'}">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Programmations actives -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📅 Programmations actives</h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(autocar.programmations)}" class="alert alert-info">
+                            Aucune programmation active.
+                        </div>
+                        <div th:if="${!#lists.isEmpty(autocar.programmations)}">
+                            <div th:each="programmation : ${autocar.programmations}" class="border p-2 mb-2 rounded">
+                                <strong th:text="${programmation.voyage.nom}">Voyage</strong><br>
+                                <small th:text="${#temporals.format(programmation.dateDepart, 'dd/MM/yyyy')} + ' - ' + ${#temporals.format(programmation.dateRetour, 'dd/MM/yyyy')}">Dates</small><br>
+                                <small class="text-muted" th:text="${programmation.voyage.hotel.ville.nom}">Destination</small>
+                                <div class="mt-1">
+                                    <a th:href="@{/admin/programmations/view/{id}(id=${programmation.id})}" class="btn btn-sm btn-info">Voir</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">⚡ Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/admin/autocars/edit/{id}(id=${autocar.id})}" class="btn btn-warning">✏️ Modifier</a>
+                            <a th:href="@{/admin/autocars/maintenance/{id}(id=${autocar.id})}" class="btn btn-info">🔧 Maintenance</a>
+                            <a th:href="@{/admin/autocars/export/{id}(id=${autocar.id})}" class="btn btn-success">📄 Exporter</a>
+                            <a th:href="@{/admin/autocars/delete/{id}(id=${autocar.id})}" 
+                               class="btn btn-danger"
+                               onclick="return confirm('Supprimer cet autocar ?')">🗑️ Supprimer</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des passagers -->
+        <div class="card mt-4" th:if="${placesOccupees > 0}">
+            <div class="card-header">
+                <h5 class="mb-0">👥 Passagers actuels</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Siège</th>
+                                <th>Nom</th>
+                                <th>Prénom</th>
+                                <th>Téléphone</th>
+                                <th>Email</th>
+                                <th>Voyage</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="emplacement : ${autocar.emplacements}" th:if="${emplacement.passager != null}">
+                                <td th:text="${emplacement.numeroSiege}">1</td>
+                                <td th:text="${emplacement.passager.nom}">Nom</td>
+                                <td th:text="${emplacement.passager.prenom}">Prénom</td>
+                                <td th:text="${emplacement.passager.telephone}">Téléphone</td>
+                                <td th:text="${emplacement.passager.email}">Email</td>
+                                <td th:text="${emplacement.passager.reservation.programmation.voyage.nom}">Voyage</td>
+                                <td>
+                                    <a th:href="@{/admin/reservations/view/{id}(id=${emplacement.passager.reservation.id})}" 
+                                       class="btn btn-sm btn-info">👁️ Réservation</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

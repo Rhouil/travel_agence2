@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réservation - Agence de Voyage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/client/dashboard">🌍 Mon Espace Voyage</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/client/voyages">Retour aux voyages</a>
+                <a class="nav-link" href="/logout">Déconnexion</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">📋 Réservation</h1>
+
+        <div class="row">
+            <div class="col-md-8">
+                <form th:action="@{/client/reservation}" th:object="${reservation}" method="post">
+                    <input type="hidden" name="programmationId" th:value="${programmation.id}">
+
+                    <!-- Informations du voyage -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">🗺️ Détails du voyage</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Voyage :</strong> <span th:text="${programmation.voyage.nom}">Voyage</span><br>
+                                    <strong>Départ :</strong> <span th:text="${#temporals.format(programmation.dateDepart, 'dd/MM/yyyy')}">Date</span><br>
+                                    <strong>Retour :</strong> <span th:text="${#temporals.format(programmation.dateRetour, 'dd/MM/yyyy')}">Date</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Prix de base :</strong> <span th:text="${programmation.prixBase + ' €'}">Prix</span><br>
+                                    <strong>Durée :</strong> <span th:text="${programmation.voyage.duree + ' jours'}">Durée</span><br>
+                                    <strong>Type :</strong> <span th:text="${programmation.voyage.typeVoyage}">Type</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Choix du point de départ -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">🚌 Choisir votre point de départ</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div th:each="point : ${pointsDepart}" class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="pointDepartId" 
+                                               th:value="${point.id}" th:id="'point' + ${point.id}" required>
+                                        <label class="form-check-label" th:for="'point' + ${point.id}">
+                                            <strong th:text="${point.nom}">Point</strong><br>
+                                            <small th:text="${point.adresse}">Adresse</small><br>
+                                            <small class="text-muted" th:text="${point.ville.nom}">Ville</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Choix de l'emplacement -->
+                    <div class="card mb-4" th:if="${!#lists.isEmpty(emplacementsDisponibles)}">
+                        <div class="card-header">
+                            <h5 class="mb-0">💺 Choisir vos emplacements dans l'autocar</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Plan de l'autocar :</strong> Cliquez sur les sièges disponibles (en vert) pour les sélectionner.
+                                Les sièges occupés sont en rouge.
+                            </div>
+                            
+                            <div class="text-center mb-4">
+                                <div class="mb-2"><strong>🚗 Avant du bus</strong></div>
+                                
+                                <div class="seat-map">
+                                    <!-- Génération du plan des sièges -->
+                                    <div th:each="row : ${#numbers.sequence(1, (#lists.size(emplacementsDisponibles) + 3) / 4)}" class="seat-row mb-2">
+                                        <!-- Sièges côté gauche -->
+                                        <span th:if="${(row - 1) * 4 + 1 <= #lists.size(emplacementsDisponibles)}"
+                                              th:each="seatNum : ${#numbers.sequence((row - 1) * 4 + 1, T(java.lang.Math).min((row - 1) * 4 + 2, #lists.size(emplacementsDisponibles)))}"
+                                              class="seat-button available"
+                                              th:data-seat="${seatNum}"
+                                              th:text="${seatNum}"
+                                              onclick="selectSeat(this)">1</span>
+                                        
+                                        <!-- Allée -->
+                                        <span class="aisle">│</span>
+                                        
+                                        <!-- Sièges côté droit -->
+                                        <span th:if="${(row - 1) * 4 + 3 <= #lists.size(emplacementsDisponibles)}"
+                                              th:each="seatNum : ${#numbers.sequence((row - 1) * 4 + 3, T(java.lang.Math).min((row - 1) * 4 + 4, #lists.size(emplacementsDisponibles)))}"
+                                              class="seat-button available"
+                                              th:data-seat="${seatNum}"
+                                              th:text="${seatNum}"
+                                              onclick="selectSeat(this)">3</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-2"><strong>🚪 Arrière du bus</strong></div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="seat-legend available me-2"></span>
+                                        <small>Disponible</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="seat-legend selected me-2"></span>
+                                        <small>Sélectionné</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="seat-legend occupied me-2"></span>
+                                        <small>Occupé</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="selectedSeats" class="mt-3">
+                                <strong>Sièges sélectionnés :</strong> <span id="seatsList">Aucun</span>
+                            </div>
+                            
+                            <input type="hidden" name="emplacementIds" id="emplacementIds">
+                        </div>
+                    </div>
+
+                    <!-- Informations des passagers -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">👥 Informations des passagers</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Réservation pour vous-même et/ou d'autres personnes</strong><br>
+                                Vous pouvez réserver pour votre famille, vos amis ou vos collègues.
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="nombrePassagers" class="form-label">Nombre de passagers</label>
+                                <select class="form-select" id="nombrePassagers" onchange="updatePassagers()">
+                                    <option value="1">1 passager (vous-même)</option>
+                                    <option value="2">2 passagers</option>
+                                    <option value="3">3 passagers</option>
+                                    <option value="4">4 passagers</option>
+                                    <option value="5">5 passagers</option>
+                                    <option value="6">6 passagers</option>
+                                </select>
+                            </div>
+                            
+                            <div id="passagersContainer">
+                                <div class="passager-form border p-3 mb-3 rounded bg-light">
+                                    <h6><i class="fas fa-user me-2"></i>Passager 1 (Vous-même)</h6>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label class="form-label">Nom *</label>
+                                            <input type="text" class="form-control" name="passagerNoms" placeholder="Nom" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Prénom *</label>
+                                            <input type="text" class="form-control" name="passagerPrenoms" placeholder="Prénom" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Téléphone *</label>
+                                            <input type="tel" class="form-control" name="passagerTelephones" placeholder="Téléphone" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Email *</label>
+                                            <input type="email" class="form-control" name="passagerEmails" placeholder="Email" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suppléments -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">➕ Options et suppléments</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-shield-alt me-2"></i>Assurances</h6>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" th:field="*{assuranceAnnulation}" id="assurance" onchange="updatePrix()">
+                                        <label class="form-check-label" for="assurance">
+                                            <strong>Assurance annulation</strong><br>
+                                            <small class="text-muted">+10% du prix total - Remboursement en cas d'annulation</small>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" name="assuranceMedicale" id="assuranceMedicale" onchange="updatePrix()">
+                                        <label class="form-check-label" for="assuranceMedicale">
+                                            <strong>Assurance médicale</strong><br>
+                                            <small class="text-muted">+50€ - Couverture médicale à l'étranger</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-bed me-2"></i>Hébergement</h6>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" th:field="*{chambreSupplementaire}" id="chambre" onchange="updatePrix()">
+                                        <label class="form-check-label" for="chambre">
+                                            <strong>Chambre supplémentaire</strong><br>
+                                            <small class="text-muted">+100€ - Chambre individuelle</small>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" name="suitePremium" id="suitePremium" onchange="updatePrix()">
+                                        <label class="form-check-label" for="suitePremium">
+                                            <strong>Surclassement suite</strong><br>
+                                            <small class="text-muted">+200€ - Suite premium avec vue</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-utensils me-2"></i>Restauration</h6>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="repasSpecial" id="repasSpecial" onchange="updatePrix()">
+                                        <label class="form-check-label" for="repasSpecial">
+                                            <strong>Repas spéciaux</strong><br>
+                                            <small class="text-muted">+30€ - Végétarien, sans gluten, halal...</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-suitcase me-2"></i>Bagages</h6>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="bagageSupplementaire" id="bagageSupplementaire" onchange="updatePrix()">
+                                        <label class="form-check-label" for="bagageSupplementaire">
+                                            <strong>Bagage supplémentaire</strong><br>
+                                            <small class="text-muted">+25€ - Bagage en soute supplémentaire</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">Confirmer la réservation</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">💰 Récapitulatif</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <strong>Prix de base :</strong> <span th:text="${programmation.prixBase + ' €'}">Prix</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Nombre de passagers :</strong> <span id="recap-passagers">1</span>
+                        </div>
+                        <hr>
+                        <div class="mb-2">
+                            <strong>Total estimé :</strong> <span id="prix-total" th:text="${programmation.prixBase + ' €'}">Prix</span>
+                        </div>
+                        <small class="text-muted">Le prix final sera calculé avec les suppléments sélectionnés.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updatePassagers() {
+            const nombre = document.getElementById('nombrePassagers').value;
+            const container = document.getElementById('passagersContainer');
+            const prixBase = parseFloat([[${programmation.prixBase}]]);
+            
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= nombre; i++) {
+                const div = document.createElement('div');
+                div.className = 'passager-form border p-3 mb-3 rounded bg-light';
+                let passagerTitle = (i === 1) ? 'Vous-même' : `Passager ${i}`;
+                div.innerHTML = `
+                    <h6><i class="fas fa-user me-2"></i>${passagerTitle}</h6>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Nom *</label>
+                            <input type="text" class="form-control" name="passagerNoms" placeholder="Nom" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Prénom *</label>
+                            <input type="text" class="form-control" name="passagerPrenoms" placeholder="Prénom" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Téléphone *</label>
+                            <input type="tel" class="form-control" name="passagerTelephones" placeholder="Téléphone" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-control" name="passagerEmails" placeholder="Email" required>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+            
+            // Mettre à jour le récapitulatif
+            document.getElementById('recap-passagers').textContent = nombre;
+            document.getElementById('prix-total').textContent = (prixBase * nombre) + ' €';
+
+            // Mettre à jour le nombre maximum de sièges sélectionnables
+            maxSeats = parseInt(nombre);
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+<style>
+.seat-button {
+    width: 40px;
+    height: 40px;
+    margin: 2px;
+    border: 2px solid;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.seat-button.available {
+    background-color: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+
+.seat-button.available:hover {
+    background-color: #c3e6cb;
+    transform: scale(1.1);
+}
+
+.seat-button.selected {
+    background-color: #007bff;
+    border-color: #0056b3;
+    color: white;
+}
+
+.seat-button.occupied {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+    cursor: not-allowed;
+}
+
+.seat-legend {
+    width: 20px;
+    height: 20px;
+    border: 2px solid;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.seat-legend.available {
+    background-color: #d4edda;
+    border-color: #28a745;
+}
+
+.seat-legend.selected {
+    background-color: #007bff;
+    border-color: #0056b3;
+}
+
+.seat-legend.occupied {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+}
+
+.aisle {
+    margin: 0 15px;
+    color: #6c757d;
+}
+
+.seat-row {
+    margin-bottom: 8px;
+}
+</style>
+
+<script>
+let selectedSeats = [];
+let maxSeats = 1;
+
+function selectSeat(seatElement) {
+    const seatNumber = seatElement.getAttribute('data-seat');
+    
+    if (seatElement.classList.contains('selected')) {
+        // Désélectionner le siège
+        seatElement.classList.remove('selected');
+        seatElement.classList.add('available');
+        selectedSeats = selectedSeats.filter(seat => seat !== seatNumber);
+    } else if (selectedSeats.length < maxSeats) {
+        // Sélectionner le siège
+        seatElement.classList.remove('available');
+        seatElement.classList.add('selected');
+        selectedSeats.push(seatNumber);
+    } else {
+        alert(`Vous ne pouvez sélectionner que ${maxSeats} siège(s) maximum.`);
+        return;
+    }
+    
+    updateSelectedSeatsDisplay();
+}
+
+function updateSelectedSeatsDisplay() {
+    const seatsList = document.getElementById('seatsList');
+    const emplacementIds = document.getElementById('emplacementIds');
+    
+    if (selectedSeats.length === 0) {
+        seatsList.textContent = 'Aucun';
+        emplacementIds.value = '';
+    } else {
+        seatsList.textContent = selectedSeats.join(', ');
+        emplacementIds.value = selectedSeats.join(',');
+    }
+}
+
+function updatePrix() {
+    // Fonction pour mettre à jour le prix en temps réel
+    // (sera implémentée côté serveur)
+}
+</script>
+</html>

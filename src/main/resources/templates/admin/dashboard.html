@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord Admin - Agence de Voyage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/admin/dashboard">🌍 Admin - Agence de Voyage</a>
+            <div class="navbar-nav ms-auto">
+                <form method="post" action="/logout" class="d-inline">
+                    <button type="submit" class="nav-link btn btn-link text-decoration-none text-white">
+                        <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">📊 Tableau de Bord Administrateur</h1>
+            </div>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">👥 Clients</h5>
+                        <h2 th:text="${totalClients}">0</h2>
+                        <p class="card-text">Total des clients inscrits</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">🗺️ Voyages</h5>
+                        <h2 th:text="${totalVoyages}">0</h2>
+                        <p class="card-text">Voyages disponibles</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">📋 Réservations</h5>
+                        <h2 th:text="${totalReservations}">0</h2>
+                        <p class="card-text">Réservations effectuées</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">🚌 Autocars</h5>
+                        <h2 th:text="${totalAutocars}">0</h2>
+                        <p class="card-text">Autocars disponibles</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu de gestion -->
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">👥 Gestion des Utilisateurs</h5>
+                        <p class="card-text">Ajouter, modifier et supprimer des utilisateurs</p>
+                        <a href="/admin/users" class="btn btn-primary">Gérer les Utilisateurs</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">🗺️ Gestion des Voyages</h5>
+                        <p class="card-text">Créer et gérer les voyages</p>
+                        <a href="/admin/voyages" class="btn btn-success">Gérer les Voyages</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">📋 Gestion des Réservations</h5>
+                        <p class="card-text">Consulter et gérer les réservations</p>
+                        <a href="/admin/reservations" class="btn btn-info">Gérer les Réservations</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">🚌 Gestion des Autocars</h5>
+                        <p class="card-text">Gérer les autocars et emplacements</p>
+                        <a href="/admin/autocars" class="btn btn-warning">Gérer les Autocars</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu secondaire -->
+        <div class="row mt-4">
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">📅 Programmations</h5>
+                        <p class="card-text">Gérer les programmations de voyages</p>
+                        <a href="/admin/programmations" class="btn btn-secondary">Voir Programmations</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">🏨 Hôtels</h5>
+                        <p class="card-text">Gérer les hôtels et destinations</p>
+                        <a href="/admin/hotels" class="btn btn-secondary">Gérer les Hôtels</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">🚌 Points de Départ</h5>
+                        <p class="card-text">Gérer les points de départ</p>
+                        <a href="/admin/points-depart" class="btn btn-secondary">Gérer Points Départ</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">💰 Calculateur Prix</h5>
+                        <p class="card-text">Simuler les prix de voyages</p>
+                        <a href="/admin/calculateur-prix" class="btn btn-secondary">Calculateur</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

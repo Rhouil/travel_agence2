@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur de Prix - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/admin/dashboard">🌍 Admin - Agence de Voyage</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/admin/dashboard">Tableau de bord</a>
+                <a class="nav-link" href="/logout">Déconnexion</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">💰 Calculateur de Prix</h1>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">🧮 Simulation de prix</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="calculateurForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="typeVoyage" class="form-label">Type de voyage</label>
+                                    <select class="form-select" id="typeVoyage" onchange="calculerPrix()">
+                                        <option value="SEJOUR">Séjour (coefficient 1.0)</option>
+                                        <option value="CIRCUIT">Circuit (coefficient 1.5)</option>
+                                        <option value="EXCURSION">Excursion (coefficient 0.7)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="duree" class="form-label">Durée (jours)</label>
+                                    <input type="number" class="form-control" id="duree" value="7" min="1" max="30" onchange="calculerPrix()">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="dateDepart" class="form-label">Date de départ</label>
+                                    <input type="date" class="form-control" id="dateDepart" onchange="calculerPrix()">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="region" class="form-label">Région de destination</label>
+                                    <select class="form-select" id="region" onchange="calculerPrix()">
+                                        <option value="autre">Autre région (coefficient 1.0)</option>
+                                        <option value="ile-de-france">Île-de-France (coefficient 1.3)</option>
+                                        <option value="paca">Provence-Alpes-Côte d'Azur (coefficient 1.2)</option>
+                                        <option value="andalousie">Andalousie (coefficient 1.1)</option>
+                                        <option value="toscane">Toscane (coefficient 1.15)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="etoiles" class="form-label">Catégorie d'hôtel</label>
+                                <select class="form-select" id="etoiles" onchange="calculerPrix()">
+                                    <option value="1">1 étoile (coefficient 0.7)</option>
+                                    <option value="2">2 étoiles (coefficient 0.8)</option>
+                                    <option value="3" selected>3 étoiles (coefficient 1.0)</option>
+                                    <option value="4">4 étoiles (coefficient 1.3)</option>
+                                    <option value="5">5 étoiles (coefficient 1.6)</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">📊 Résultat du calcul</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Prix de base par jour :</strong><br>
+                            <span class="text-primary">50,00 €</span>
+                        </div>
+                        
+                        <div id="detailsCalcul">
+                            <!-- Les détails seront remplis par JavaScript -->
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="text-center">
+                            <h4 class="text-success">Prix final :</h4>
+                            <h2 id="prixFinal" class="text-success fw-bold">350,00 €</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📋 Barème des coefficients</h5>
+                    </div>
+                    <div class="card-body small">
+                        <h6>Types de voyage :</h6>
+                        <ul>
+                            <li>Séjour : x1.0</li>
+                            <li>Circuit : x1.5</li>
+                            <li>Excursion : x0.7</li>
+                        </ul>
+                        
+                        <h6>Saisonnalité :</h6>
+                        <ul>
+                            <li>Été (juin-août) : +40%</li>
+                            <li>Hiver (déc-fév) : +20%</li>
+                            <li>Printemps (mar-mai) : +10%</li>
+                            <li>Automne (sep-nov) : -10%</li>
+                        </ul>
+                        
+                        <h6>Destinations :</h6>
+                        <ul>
+                            <li>Île-de-France : +30%</li>
+                            <li>PACA : +20%</li>
+                            <li>Toscane : +15%</li>
+                            <li>Andalousie : +10%</li>
+                        </ul>
+                        
+                        <h6>Hôtels :</h6>
+                        <ul>
+                            <li>1★ : -30%</li>
+                            <li>2★ : -20%</li>
+                            <li>3★ : Prix normal</li>
+                            <li>4★ : +30%</li>
+                            <li>5★ : +60%</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialiser la date d'aujourd'hui
+        document.getElementById('dateDepart').value = new Date().toISOString().split('T')[0];
+        
+        function calculerPrix() {
+            const prixBase = 50.00;
+            let prix = prixBase;
+            
+            // Type de voyage
+            const typeVoyage = document.getElementById('typeVoyage').value;
+            let coeffType = 1.0;
+            switch(typeVoyage) {
+                case 'SEJOUR': coeffType = 1.0; break;
+                case 'CIRCUIT': coeffType = 1.5; break;
+                case 'EXCURSION': coeffType = 0.7; break;
+            }
+            prix *= coeffType;
+            
+            // Durée
+            const duree = parseInt(document.getElementById('duree').value);
+            prix *= duree;
+            
+            // Saisonnalité
+            const dateDepart = new Date(document.getElementById('dateDepart').value);
+            const mois = dateDepart.getMonth() + 1;
+            let coeffSaison = 1.0;
+            let saisonText = '';
+            
+            if (mois >= 6 && mois <= 8) {
+                coeffSaison = 1.4;
+                saisonText = 'Été (+40%)';
+            } else if (mois === 12 || mois <= 2) {
+                coeffSaison = 1.2;
+                saisonText = 'Hiver (+20%)';
+            } else if (mois >= 3 && mois <= 5) {
+                coeffSaison = 1.1;
+                saisonText = 'Printemps (+10%)';
+            } else {
+                coeffSaison = 0.9;
+                saisonText = 'Automne (-10%)';
+            }
+            prix *= coeffSaison;
+            
+            // Région
+            const region = document.getElementById('region').value;
+            let coeffRegion = 1.0;
+            let regionText = '';
+            
+            switch(region) {
+                case 'ile-de-france': 
+                    coeffRegion = 1.3; 
+                    regionText = 'Île-de-France (+30%)';
+                    break;
+                case 'paca': 
+                    coeffRegion = 1.2; 
+                    regionText = 'PACA (+20%)';
+                    break;
+                case 'toscane': 
+                    coeffRegion = 1.15; 
+                    regionText = 'Toscane (+15%)';
+                    break;
+                case 'andalousie': 
+                    coeffRegion = 1.1; 
+                    regionText = 'Andalousie (+10%)';
+                    break;
+                default: 
+                    regionText = 'Autre région (prix normal)';
+            }
+            prix *= coeffRegion;
+            
+            // Hôtel
+            const etoiles = parseInt(document.getElementById('etoiles').value);
+            let coeffHotel = 1.0;
+            let hotelText = '';
+            
+            switch(etoiles) {
+                case 1: coeffHotel = 0.7; hotelText = '1★ (-30%)'; break;
+                case 2: coeffHotel = 0.8; hotelText = '2★ (-20%)'; break;
+                case 3: coeffHotel = 1.0; hotelText = '3★ (prix normal)'; break;
+                case 4: coeffHotel = 1.3; hotelText = '4★ (+30%)'; break;
+                case 5: coeffHotel = 1.6; hotelText = '5★ (+60%)'; break;
+            }
+            prix *= coeffHotel;
+            
+            // Afficher les détails
+            const detailsHtml = `
+                <div class="mb-2">
+                    <strong>Type :</strong> ${typeVoyage}<br>
+                    <small>Coefficient : ${coeffType}</small>
+                </div>
+                <div class="mb-2">
+                    <strong>Durée :</strong> ${duree} jour(s)
+                </div>
+                <div class="mb-2">
+                    <strong>Saison :</strong><br>
+                    <small>${saisonText}</small>
+                </div>
+                <div class="mb-2">
+                    <strong>Destination :</strong><br>
+                    <small>${regionText}</small>
+                </div>
+                <div class="mb-2">
+                    <strong>Hôtel :</strong><br>
+                    <small>${hotelText}</small>
+                </div>
+            `;
+            
+            document.getElementById('detailsCalcul').innerHTML = detailsHtml;
+            document.getElementById('prixFinal').textContent = prix.toFixed(2) + ' €';
+        }
+        
+        // Calculer le prix initial
+        calculerPrix();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

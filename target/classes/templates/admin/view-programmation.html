@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails Programmation - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/admin/dashboard">🌍 Admin - Agence de Voyage</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/admin/programmations">Retour aux programmations</a>
+                <a class="nav-link" href="/logout">Déconnexion</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">📅 Détails de la Programmation</h1>
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Informations générales -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📋 Informations générales</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>🗺️ Voyage :</strong> <span th:text="${programmation.voyage.nom}">Voyage</span><br>
+                                <strong>📅 Départ :</strong> <span th:text="${#temporals.format(programmation.dateDepart, 'dd/MM/yyyy')}">Date</span><br>
+                                <strong>🔙 Retour :</strong> <span th:text="${#temporals.format(programmation.dateRetour, 'dd/MM/yyyy')}">Date</span><br>
+                                <strong>⏱️ Durée :</strong> <span th:text="${programmation.voyage.duree + ' jours'}">Durée</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>💰 Prix de base :</strong> <span class="text-success fw-bold" th:text="${programmation.prixBase + ' €'}">Prix</span><br>
+                                <strong>🏨 Hôtel :</strong> <span th:text="${programmation.voyage.hotel.nom}">Hôtel</span><br>
+                                <strong>📍 Destination :</strong> <span th:text="${programmation.voyage.hotel.ville.nom}">Ville</span><br>
+                                <strong>🗂️ Type :</strong> <span th:text="${programmation.voyage.typeVoyage}">Type</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Autocars affectés -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">🚌 Autocars affectés</h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(programmation.autocars)}" class="alert alert-warning">
+                            Aucun autocar affecté à cette programmation.
+                        </div>
+                        <div th:if="${!#lists.isEmpty(programmation.autocars)}">
+                            <div class="row">
+                                <div th:each="autocar : ${programmation.autocars}" class="col-md-6 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title" th:text="${autocar.numeroImmatriculation}">Immatriculation</h6>
+                                            <p class="card-text">
+                                                <strong>Type :</strong> <span th:text="${autocar.typeAutocar.nom}">Type</span><br>
+                                                <strong>Places :</strong> <span th:text="${autocar.nombrePlaces}">Places</span><br>
+                                                <strong>Occupées :</strong> 
+                                                <span th:text="${#lists.size(autocar.emplacements) - #lists.size(autocar.emplacements.?[passager == null])}">0</span>
+                                                / <span th:text="${autocar.nombrePlaces}">50</span>
+                                            </p>
+                                            <a th:href="@{/admin/autocars/view/{id}(id=${autocar.id})}" class="btn btn-sm btn-info">Voir détails</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Points de départ -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">🚌 Points de départ</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div th:each="point : ${programmation.voyage.pointsDepart}" class="col-md-6 mb-2">
+                                <div class="border p-2 rounded">
+                                    <strong th:text="${point.nom}">Point</strong><br>
+                                    <small th:text="${point.adresse}">Adresse</small><br>
+                                    <small class="text-muted" th:text="${point.ville.nom}">Ville</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Statistiques -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📊 Statistiques</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>📋 Réservations :</strong>
+                            <span class="badge bg-primary" th:text="${#lists.size(programmation.reservations)}">0</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>👥 Passagers :</strong>
+                            <span class="badge bg-info" th:text="${totalPassagers}">0</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>💰 Chiffre d'affaires :</strong>
+                            <span class="text-success fw-bold" th:text="${chiffreAffaires + ' €'}">0 €</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>💺 Taux d'occupation :</strong>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" 
+                                     th:style="'width: ' + ${tauxOccupation} + '%'"
+                                     th:text="${tauxOccupation + '%'}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">⚡ Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/admin/programmations/edit/{id}(id=${programmation.id})}" class="btn btn-warning">✏️ Modifier</a>
+                            <a th:href="@{/admin/programmations/duplicate/{id}(id=${programmation.id})}" class="btn btn-info">📋 Dupliquer</a>
+                            <a th:href="@{/admin/programmations/export/{id}(id=${programmation.id})}" class="btn btn-success">📄 Exporter</a>
+                            <a th:href="@{/admin/programmations/delete/{id}(id=${programmation.id})}" 
+                               class="btn btn-danger"
+                               onclick="return confirm('Supprimer cette programmation ?')">🗑️ Supprimer</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des réservations -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">📋 Réservations de cette programmation</h5>
+            </div>
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(programmation.reservations)}" class="alert alert-info">
+                    Aucune réservation pour cette programmation.
+                </div>
+                <div th:if="${!#lists.isEmpty(programmation.reservations)}">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Date réservation</th>
+                                    <th>Prix total</th>
+                                    <th>Passagers</th>
+                                    <th>Suppléments</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="reservation : ${programmation.reservations}">
+                                    <td th:text="${reservation.client.firstName + ' ' + reservation.client.lastName}">Client</td>
+                                    <td th:text="${#temporals.format(reservation.dateReservation, 'dd/MM/yyyy HH:mm')}">Date</td>
+                                    <td th:text="${reservation.prixTotal + ' €'}">Prix</td>
+                                    <td>
+                                        <span class="badge bg-info" th:text="${#lists.size(reservation.passagers)}">0</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${reservation.assuranceAnnulation}" class="badge bg-warning">Assurance</span>
+                                        <span th:if="${reservation.chambreSupplementaire}" class="badge bg-secondary">Chambre+</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/admin/reservations/view/{id}(id=${reservation.id})}" class="btn btn-sm btn-info">👁️ Voir</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
